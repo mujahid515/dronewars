@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { FbService } from '../../services/fb.service';
 
 @Component({
   selector: 'app-game',
@@ -7,9 +8,10 @@ import { Component, OnInit } from '@angular/core';
 })
 export class GameComponent implements OnInit {
 
-  constructor() { }
+  constructor(private fb: FbService) { }
 
   ngOnInit() {
+    console.log(this.fb.getGameObj());
   }
 
 }

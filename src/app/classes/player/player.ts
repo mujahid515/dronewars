@@ -10,6 +10,13 @@ export interface BladeState {
     bladeState: boolean;
 }
 
+export interface User {
+    uid: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+}
+
 export class Player {
     private bladeState: boolean;
 

@@ -47,7 +47,7 @@ export class Grid {
 
     private newMazeGrid: MazeGrid;
 
-    constructor(private difficulty: number, private location: string) {
+    constructor(private difficulty: string, private location: string) {
         this.createMaze(this.difficulty, this.location);
     }
 
@@ -70,7 +70,7 @@ export class Grid {
         // explode bombs
     }
 
-    private createMaze(difficulty: number, location: string) {
+    private createMaze(difficulty: string, location: string) {
         this.newMazeGrid = {
             rowA: {
                 col1: { top: true, right: false, bottom: false, left: true, crossUp: false, crossDown: false, star: false, bomb: false },

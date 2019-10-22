@@ -2,6 +2,25 @@ import { Drone } from '../drone/drone';
 import { Player, PlayerInterface } from '../player/player';
 import { Grid } from '../maze/grid';
 
+export interface PlayersObj {
+    active: boolean;
+    uid: string;
+    firstName: string;
+    lastName: string;
+    bladeID: string;
+}
+
+export interface GameDB {
+    active: boolean;
+    droneColor: string;
+    mazeDifficulty: string;
+    mazeLocation: string;
+    gid: string;
+    openTo: string;
+    players: Array<any>;
+    host: string;
+}
+
 export class Game {
 
     private player1: Player;
@@ -17,7 +36,7 @@ export class Game {
         private p3: PlayerInterface,
         private p4: PlayerInterface,
         private droneColor: string,
-        private difficulty: number,
+        private difficulty: string,
         private location: string
     ) {
         this.player1 = new Player(p1);
