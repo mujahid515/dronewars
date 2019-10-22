@@ -9,7 +9,7 @@
 /node_modules
 
 # environments
-/src/environments
+/src/environments/*
 
 # profiling files
 chrome-profiler-events.json
