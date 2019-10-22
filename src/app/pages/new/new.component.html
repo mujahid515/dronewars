@@ -1,0 +1,99 @@
+<div class="container">
+    <div class="row">
+      <div class="col-12">
+          <h1>New Game</h1>
+      </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <h5>Player 1</h5>
+            <input id="uid1" type="text" />
+            <input id="firstName1" type="text" />
+            <input id="lastName1" type="text" />
+            <select id="pBlade1">
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <h5>Player 2</h5>
+            <input id="uid2" type="text" />
+            <input id="firstName2" type="text" />
+            <input id="lastName2" type="text" />
+            <select id="pBlade2">
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <h5>Player 3</h5>
+            <input id="uid3" type="text" />
+            <input id="firstName3" type="text" />
+            <input id="lastName3" type="text" />
+            <select id="pBlade3">
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <h5>Player 4</h5>
+            <input id="uid4" type="text" />
+            <input id="firstName4" type="text" />
+            <input id="lastName4" type="text" />
+            <select id="pBlade4">
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <h5>Select Drone Color</h5>
+            <select id="droneColor">
+                <option value="black">Black</option>
+                <option value="red">Red</option>
+                <option value="blue">Blue</option>
+                <option value="yellow">Yellow</option>
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <h5>Select Difficulty Level</h5>
+            <select id="mazeDifficulty">
+                <option value="1">Easy</option>
+                <option value="2">Mid Level</option>
+                <option value="3">Hard</option>
+                <option value="4">Harder</option>
+                <option value="5">Difficult!</option>
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <h5>Select Location</h5>
+            <select id="mazeLocation">
+                <option value="london">London</option>
+                <option value="paris">Paris</option>
+                <option value="newYork">New York</option>
+                <option value="hongKong">Hong Kong</option>
+                <option value="dubai">Dubai</option>
+            </select>
+        </div>
+    </div>
+    <button class="btn btn-success" (click)="initGame()">Start Game</button>
+</div>
