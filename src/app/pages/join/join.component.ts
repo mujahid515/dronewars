@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { take } from 'rxjs/operators';
-import { GameDB, PlayersObj } from '../../classes/game/game';
+import { GameDB, PlayersObj, PeerObj } from '../../classes/game/game';
 import { User } from '../../classes/player/player';
 import { FbService } from '../../services/fb.service';
+import * as SimplePeer from 'simple-peer';
 
 @Component({
   selector: 'app-join',
@@ -53,13 +54,18 @@ export class JoinComponent implements OnInit {
   goToGame(gameCode: string) {
     this.fb.getGame(gameCode, 'gameBS').then((gameData: GameDB) => {
       var playerAlreadyExist = gameData.players.filter(x => (x.uid === this.currentUser.uid));
-      if(gameData.players[0].uid != this.currentUser.uid && playerAlreadyExist.length == 0) {
+      if(gameData.host != this.currentUser.uid && playerAlreadyExist.length == 0) {
         //add player to game players list
+        //also need to update peer2, peer3, peer4
         var bladeID = 'B';
-        if(gameData.players.length == 2) {
+        if(gameData.players.length == 1) {
+          gameData.peer2 = { uid: this.currentUser.uid, signal: '' };
+        } else if(gameData.players.length == 2) {
           bladeID = 'C';
+          gameData.peer3 = { uid: this.currentUser.uid, signal: '' };
         } else if(gameData.players.length == 3) {
           bladeID = 'D';
+          gameData.peer4 = { uid: this.currentUser.uid, signal: '' };
         }
         var newPlayer: PlayersObj = {
           active: false,
@@ -69,9 +75,19 @@ export class JoinComponent implements OnInit {
           bladeID: bladeID
         }
         gameData.players.push(newPlayer);
-        this.fb.setDocMerge('games', gameData.gid, gameData);
-        //navigate to awaiting page
-        this.fb.goToPage('awaiting');
+        // connect to peer1 signal
+        this.fb.createGuestPeer(gameData.peer1.signal).then((signalData: string) => {
+          if(gameData.players.length == 2) {
+            gameData.peer2.signal = signalData;
+          } else if(gameData.players.length == 3) {
+            gameData.peer3.signal = signalData;
+          } else if(gameData.players.length == 4) {
+            gameData.peer4.signal = signalData;
+          }
+          this.fb.setDocMerge('games', gameData.gid, gameData);
+          //navigate to awaiting page
+          this.fb.goToPage('awaiting');
+        })
       } else if(gameData.players.length == 4) {
         // too many players in this game!
         this.fb.fireSwal('Error', 'There are already 4 players in this game!', 'error');

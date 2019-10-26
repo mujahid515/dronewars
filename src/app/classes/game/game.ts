@@ -1,6 +1,7 @@
 import { Drone } from '../drone/drone';
 import { Player, PlayerInterface } from '../player/player';
 import { Grid } from '../maze/grid';
+import * as SimplePeer from 'simple-peer';
 
 export interface PlayersObj {
     active: boolean;
@@ -8,6 +9,11 @@ export interface PlayersObj {
     firstName: string;
     lastName: string;
     bladeID: string;
+}
+
+export interface PeerObj {
+    uid: string;
+    signal: string;
 }
 
 export interface GameDB {
@@ -19,6 +25,10 @@ export interface GameDB {
     openTo: string;
     players: Array<any>;
     host: string;
+    peer1: PeerObj;
+    peer2: PeerObj;
+    peer3: PeerObj;
+    peer4: PeerObj;
 }
 
 export class Game {

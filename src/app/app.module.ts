@@ -1,5 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
 import { AngularFireModule, FirebaseOptionsToken } from '@angular/fire';
 import { AngularFirestoreModule } from '@angular/fire/firestore';
 import { AngularFireStorageModule } from '@angular/fire/storage';
@@ -43,7 +44,8 @@ import { AfterIfDirective } from './directives/after-if.directive';
     AngularFireStorageModule,
     FormsModule,
     ReactiveFormsModule,
-    ClipboardModule
+    ClipboardModule,
+    HttpClientModule
   ],
   providers: [
     FbService,

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Game, GameDB } from '../classes/game/game';
 import { PlayerInterface, User } from '../classes/player/player';
 import { Router } from '@angular/router';
@@ -25,9 +26,13 @@ export class FbService {
   
   private gameObj: Game;
 
-  peer;
+  peer: SimplePeer.Instance;
+  guestPeers: SimplePeer.Instance[] = [];
+  locationHash: string;
 
-  constructor(private db: AngularFirestore, private afAuth: AngularFireAuth, private router: Router) {}
+  endpoint = 'https://us-central1-dronemazewars.cloudfunctions.net/';
+
+  constructor(private db: AngularFirestore, private afAuth: AngularFireAuth, private router: Router, private http: HttpClient) {}
 
   //Auth management
 
@@ -250,30 +255,102 @@ export class FbService {
     })
   }
 
-  // peer management
+  // peer management new
 
-  createPeer(gameId) {
-    location.hash = '#'+gameId;
-    this.peer = new SimplePeer({
-      initiator: location.hash === '#'+gameId,
-      trickle: false
+  cfCreateHostPeer(gid: string, uid: string) {
+    var prom = new Promise((resolve, reject) => {
+      let url = this.endpoint + 'createHostPeer';
+      let body = { gid: gid, uid: uid };
+      let newPost = this.http.post(url, JSON.stringify(body)).pipe(take(1)).subscribe((subData) => {
+        //subData
+        console.log('subData: ', subData);
+      }, (error) => {
+        resolve(error);
+      }, () => {
+        resolve({ ok: true });
+      });
     });
-    this.peer.on('error', err => console.log('error', err));
-    this.peer.on('signal', data => {
-      console.log('SIGNAL', JSON.stringify(data));
-      //this needs to be sent to firestore
-    });
-    this.peer.on('connect', () => {
-      console.log('CONNECT')
-      this.peer.send('whatever' + Math.random())
-    })
-    this.peer.on('data', data => {
-      console.log('data: ' + data)
-    })
+    return prom;
+  }
+  
+  cfHostSignalGuest(signalData: string) {
+    
   }
 
-  peerSignal(val) {
-    this.peer.signal(JSON.parse(val));
+  cfHostSendData(data: object) {
+    
   }
 
+  cfGuestSendData(data: object) {
+    
+  }
+  
+  cfCreateGuestPeer(signalData: string, gid: string, peerNum: string, uid: string) {
+    
+  }
+
+  // peer management old
+
+  createHostPeer(gameId) {
+    var prom = new Promise((resolve, reject) => {
+      this.locationHash = '#'+gameId;
+      location.hash = '#'+gameId;
+      this.peer = new SimplePeer({
+        initiator: location.hash === '#'+gameId,
+        trickle: false
+      });
+      this.peer.on('error', err => console.log('error', err));
+      this.peer.on('connect', () => {
+        console.log('HOST CONNECT')
+        //this.peer.send(JSON.stringify('host connected!'));
+      })
+      this.peer.on('data', data => {
+        console.log('data: ' + data)
+      })
+      this.peer.on('signal', data => {
+        console.log('SIGNAL', JSON.stringify(data));
+        //this needs to be sent to firestore
+        resolve({ signal: JSON.stringify(data), peerObj: this.peer });
+      });
+      console.log('looking for chunk: ', this.peer);
+    })
+    return prom;
+  }
+
+  hostSignalGuest(signalData) {
+    this.peer.signal(JSON.parse(signalData));
+  }
+
+  hostSendData(data) {
+    for(let i = 0; i < this.guestPeers.length; i++) {
+      console.log('this.guestPeers[i]: ', this.guestPeers[i]);
+      this.guestPeers[i].send(JSON.stringify(data));
+    }
+  }
+
+  guestSendData(data) {
+    this.peer.send(JSON.stringify(data));
+  }
+
+  createGuestPeer(val) {
+    var prom = new Promise((resolve, reject) => {
+      var guestPeer = new SimplePeer();
+      guestPeer.on('error', err => console.log('error', err));
+      guestPeer.on('connect', () => {
+        console.log('GUEST CONNECT')
+        //this.peer.send(JSON.stringify('guest connected!'))
+      })
+      guestPeer.on('data', data => {
+        console.log('data: ' + data)
+      })
+      guestPeer.signal(JSON.parse(val));
+      guestPeer.on('signal', data => {
+        console.log('SIGNAL', JSON.stringify(data));
+        //this needs to be sent to firestore
+        resolve({ signal: JSON.stringify(data), peerObj: guestPeer });
+      });
+      this.guestPeers.push(guestPeer);
+    });
+    return prom;
+  }
 }

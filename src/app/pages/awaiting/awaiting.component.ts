@@ -29,6 +29,8 @@ export class AwaitingComponent implements OnInit {
   mazeLocationList = this.listsObj.mazeLocationList;
   bladeIdList = this.listsObj.bladeIdList;
 
+  messageToPlayers: string;
+
   constructor(public fb: FbService) { }
 
   ngOnInit() {
@@ -44,6 +46,11 @@ export class AwaitingComponent implements OnInit {
         }
       });
     }
+  }
+
+  updateHash(gid) {
+    //update location.hash to game id
+    location.hash = '#'+gid;
   }
 
   initGame(gameObj) {
@@ -102,15 +109,28 @@ export class AwaitingComponent implements OnInit {
     this.fb.goToPage('/');
   }
 
-  acceptPlayer(gameObj, uid) {
+  acceptPlayer(gameObj: GameDB, uid) {
     this.acceptOrReject(gameObj, uid, true);
     // establish webRTC connection between host and the accepted player
-    this.fb.createPeer(gameObj.gid);
+    // this.fb.createPeer(gameObj.gid); // when you accept player signal the players signal data
+    let signalData = '';
+    if(gameObj.peer2.uid == uid) {
+      signalData = gameObj.peer2.signal;
+    } else if(gameObj.peer3.uid == uid) {
+      signalData = gameObj.peer3.signal;
+    } else if(gameObj.peer4.uid == uid) {
+      signalData = gameObj.peer4.signal;
+    }
+    this.fb.hostSignalGuest(signalData);
     // disconnect accepted player from database connection
   }
 
   rejectPlayer(gameObj, uid) {
     this.acceptOrReject(gameObj, uid, false);
+  }
+
+  sendMessageToPlayers(msg) {
+    this.fb.hostSendData(msg); //test
   }
 
   getPlayer(playerItem, i) {
