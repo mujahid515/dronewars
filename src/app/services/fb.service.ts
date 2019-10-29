@@ -263,7 +263,7 @@ export class FbService {
       let body = { gid: gid, uid: uid };
       let newPost = this.http.post(url, JSON.stringify(body)).pipe(take(1)).subscribe((subData) => {
         //subData
-        console.log('subData: ', subData);
+        console.log('create host peer: ', subData);
       }, (error) => {
         resolve(error);
       }, () => {
@@ -274,82 +274,65 @@ export class FbService {
   }
   
   cfHostSignalGuest(signalData: string) {
-    
-  }
-
-  cfHostSendData(data: object) {
-    
-  }
-
-  cfGuestSendData(data: object) {
-    
-  }
-  
-  cfCreateGuestPeer(signalData: string, gid: string, peerNum: string, uid: string) {
-    
-  }
-
-  // peer management old
-
-  createHostPeer(gameId) {
     var prom = new Promise((resolve, reject) => {
-      this.locationHash = '#'+gameId;
-      location.hash = '#'+gameId;
-      this.peer = new SimplePeer({
-        initiator: location.hash === '#'+gameId,
-        trickle: false
+      let url = this.endpoint + 'hostSignalGuest';
+      let body = { signalData: signalData };
+      let newPost = this.http.post(url, JSON.stringify(body)).pipe(take(1)).subscribe((subData) => {
+        //subData
+        console.log('create host peer: ', subData);
+      }, (error) => {
+        resolve(error);
+      }, () => {
+        resolve({ ok: true });
       });
-      this.peer.on('error', err => console.log('error', err));
-      this.peer.on('connect', () => {
-        console.log('HOST CONNECT')
-        //this.peer.send(JSON.stringify('host connected!'));
-      })
-      this.peer.on('data', data => {
-        console.log('data: ' + data)
-      })
-      this.peer.on('signal', data => {
-        console.log('SIGNAL', JSON.stringify(data));
-        //this needs to be sent to firestore
-        resolve({ signal: JSON.stringify(data), peerObj: this.peer });
-      });
-      console.log('looking for chunk: ', this.peer);
-    })
+    });
     return prom;
   }
 
-  hostSignalGuest(signalData) {
-    this.peer.signal(JSON.parse(signalData));
-  }
-
-  hostSendData(data) {
-    for(let i = 0; i < this.guestPeers.length; i++) {
-      console.log('this.guestPeers[i]: ', this.guestPeers[i]);
-      this.guestPeers[i].send(JSON.stringify(data));
-    }
-  }
-
-  guestSendData(data) {
-    this.peer.send(JSON.stringify(data));
-  }
-
-  createGuestPeer(val) {
+  cfHostSendData(data: object) {
     var prom = new Promise((resolve, reject) => {
-      var guestPeer = new SimplePeer();
-      guestPeer.on('error', err => console.log('error', err));
-      guestPeer.on('connect', () => {
-        console.log('GUEST CONNECT')
-        //this.peer.send(JSON.stringify('guest connected!'))
-      })
-      guestPeer.on('data', data => {
-        console.log('data: ' + data)
-      })
-      guestPeer.signal(JSON.parse(val));
-      guestPeer.on('signal', data => {
-        console.log('SIGNAL', JSON.stringify(data));
-        //this needs to be sent to firestore
-        resolve({ signal: JSON.stringify(data), peerObj: guestPeer });
+      let url = this.endpoint + 'hostSendData';
+      let body = { data: data };
+      let newPost = this.http.post(url, JSON.stringify(body)).pipe(take(1)).subscribe((subData) => {
+        //subData
+        console.log('host send data: ', subData);
+      }, (error) => {
+        resolve(error);
+      }, () => {
+        resolve({ ok: true });
       });
-      this.guestPeers.push(guestPeer);
+    });
+    return prom;
+  }
+
+  cfGuestSendData(data: object) {
+    var prom = new Promise((resolve, reject) => {
+      let url = this.endpoint + 'guestSendData';
+      let body = { data: data };
+      let newPost = this.http.post(url, JSON.stringify(body)).pipe(take(1)).subscribe((subData) => {
+        //subData
+        console.log('guest send data: ', subData);
+      }, (error) => {
+        resolve(error);
+      }, () => {
+        resolve({ ok: true });
+      });
+    });
+    return prom;
+  }
+  
+  cfCreateGuestPeer(signalData: string, gid: string, peerNum: string, uid: string) {
+    var prom = new Promise((resolve, reject) => {
+      let url = this.endpoint + 'createGuestPeer';
+      let body = { signalData: signalData, gid: gid, peerNum: peerNum, uid: uid };
+      let newPost = this.http.post(url, JSON.stringify(body)).pipe(take(1)).subscribe((subData) => {
+        //subData
+        console.log('create guest peer: ', subData);
+      }, (error) => {
+        resolve(error);
+      }, () => {
+        resolve({ ok: true });
+      });
     });
     return prom;
   }

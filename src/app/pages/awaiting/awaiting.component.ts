@@ -121,8 +121,14 @@ export class AwaitingComponent implements OnInit {
     } else if(gameObj.peer4.uid == uid) {
       signalData = gameObj.peer4.signal;
     }
-    this.fb.hostSignalGuest(signalData);
-    // disconnect accepted player from database connection
+    this.fb.cfHostSignalGuest(signalData).then((resp: any) => {
+      if(resp.ok) {
+        // disconnect accepted player from database connection
+      } else {
+        this.fb.fireSwal('Error!', resp.message, 'error');
+        console.error('Host could not signal guest: ', resp);
+      }
+    });
   }
 
   rejectPlayer(gameObj, uid) {
@@ -130,7 +136,14 @@ export class AwaitingComponent implements OnInit {
   }
 
   sendMessageToPlayers(msg) {
-    this.fb.hostSendData(msg); //test
+    this.fb.cfHostSendData(msg).then((resp: any) => {
+      if(resp.ok) {
+        // message successfuly sent...
+      } else {
+        this.fb.fireSwal('Error!', resp.message, 'error');
+        console.error('Could not message players: ', resp);
+      }
+    });
   }
 
   getPlayer(playerItem, i) {

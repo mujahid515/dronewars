@@ -71,7 +71,7 @@ export class NewComponent implements OnInit {
           if(docID) {
             promObj.gid = docID;
             //this needs to be done on server
-            location.hash = '#host';
+            location.hash = '#'+docID;
             this.fb.cfCreateHostPeer(docID, this.currentUser.uid).then((resp: any) => {
                 if(resp.ok) {
                     this.fb.getGame(docID, 'gameBS');

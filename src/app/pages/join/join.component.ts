@@ -58,14 +58,17 @@ export class JoinComponent implements OnInit {
         //add player to game players list
         //also need to update peer2, peer3, peer4
         var bladeID = 'B';
+        var playerNum = 'peer2';
         if(gameData.players.length == 1) {
           gameData.peer2 = { uid: this.currentUser.uid, signal: '' };
         } else if(gameData.players.length == 2) {
           bladeID = 'C';
           gameData.peer3 = { uid: this.currentUser.uid, signal: '' };
+          playerNum = 'peer3';
         } else if(gameData.players.length == 3) {
           bladeID = 'D';
           gameData.peer4 = { uid: this.currentUser.uid, signal: '' };
+          playerNum = 'peer4';
         }
         var newPlayer: PlayersObj = {
           active: false,
@@ -76,18 +79,15 @@ export class JoinComponent implements OnInit {
         }
         gameData.players.push(newPlayer);
         // connect to peer1 signal
-        this.fb.createGuestPeer(gameData.peer1.signal).then((signalData: string) => {
-          if(gameData.players.length == 2) {
-            gameData.peer2.signal = signalData;
-          } else if(gameData.players.length == 3) {
-            gameData.peer3.signal = signalData;
-          } else if(gameData.players.length == 4) {
-            gameData.peer4.signal = signalData;
-          }
-          this.fb.setDocMerge('games', gameData.gid, gameData);
+        this.fb.cfCreateGuestPeer(gameData.peer1.signal, gameData.gid, playerNum, this.currentUser.uid).then((resp: any) => {
           //navigate to awaiting page
-          this.fb.goToPage('awaiting');
-        })
+          if(resp.ok) {
+            this.fb.goToPage('awaiting');
+          } else {
+            this.fb.fireSwal('Error!', resp.message, 'error');
+            console.error('Guest was not added: ', resp);
+          }
+        });
       } else if(gameData.players.length == 4) {
         // too many players in this game!
         this.fb.fireSwal('Error', 'There are already 4 players in this game!', 'error');
