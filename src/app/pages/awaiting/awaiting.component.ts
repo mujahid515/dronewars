@@ -114,14 +114,17 @@ export class AwaitingComponent implements OnInit {
     // establish webRTC connection between host and the accepted player
     // this.fb.createPeer(gameObj.gid); // when you accept player signal the players signal data
     let signalData = '';
+    let peerNum = 'peer2';
     if(gameObj.peer2.uid == uid) {
       signalData = gameObj.peer2.signal;
     } else if(gameObj.peer3.uid == uid) {
       signalData = gameObj.peer3.signal;
+      peerNum = 'peer3';
     } else if(gameObj.peer4.uid == uid) {
       signalData = gameObj.peer4.signal;
+      peerNum = 'peer4';
     }
-    this.fb.cfHostSignalGuest(signalData).then((resp: any) => {
+    this.fb.cfHostSignalGuest(signalData, peerNum).then((resp: any) => {
       if(resp.ok) {
         // disconnect accepted player from database connection
       } else {

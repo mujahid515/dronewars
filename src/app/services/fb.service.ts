@@ -273,10 +273,10 @@ export class FbService {
     return prom;
   }
   
-  cfHostSignalGuest(signalData: string) {
+  cfHostSignalGuest(signalData: string, peerNum: string) {
     var prom = new Promise((resolve, reject) => {
       let url = this.endpoint + 'hostSignalGuest';
-      let body = { signalData: signalData };
+      let body = { signalData: signalData, peerNum: peerNum };
       let newPost = this.http.post(url, JSON.stringify(body)).pipe(take(1)).subscribe((subData) => {
         //subData
         console.log('create host peer: ', subData);
@@ -305,10 +305,10 @@ export class FbService {
     return prom;
   }
 
-  cfGuestSendData(data: object) {
+  cfGuestSendData(data: object, gid: string) {
     var prom = new Promise((resolve, reject) => {
       let url = this.endpoint + 'guestSendData';
-      let body = { data: data };
+      let body = { data: data, gid: gid };
       let newPost = this.http.post(url, JSON.stringify(body)).pipe(take(1)).subscribe((subData) => {
         //subData
         console.log('guest send data: ', subData);

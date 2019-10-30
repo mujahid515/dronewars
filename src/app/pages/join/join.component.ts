@@ -82,6 +82,7 @@ export class JoinComponent implements OnInit {
         this.fb.cfCreateGuestPeer(gameData.peer1.signal, gameData.gid, playerNum, this.currentUser.uid).then((resp: any) => {
           //navigate to awaiting page
           if(resp.ok) {
+            this.fb.setDocMerge('games', gameData.gid, gameData);
             this.fb.goToPage('awaiting');
           } else {
             this.fb.fireSwal('Error!', resp.message, 'error');

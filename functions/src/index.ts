@@ -19,7 +19,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-let peer: SimplePeer.Instance;
+//let peer: SimplePeer.Instance;
 const guestPeers: Array<any> = [];
 
 //data: { gid: string, uid: string }
@@ -29,7 +29,7 @@ exports.createHostPeer = functions.https.onRequest((req, res) => {
         const docRef = db.doc(`games/${body.gid}`);
         await docRef.update({ gid: body.gid });
         const prom = new Promise((resolve, reject) => {
-            peer = new SimplePeer({
+            let peer = new SimplePeer({
                 initiator: true,
                 trickle: false,
                 wrtc: wrtc
@@ -45,25 +45,35 @@ exports.createHostPeer = functions.https.onRequest((req, res) => {
                 console.log('SIGNAL', JSON.stringify(d));
                 //this needs to be sent to firestore
                 const docRef2 = db.doc(`games/${body.gid}`);
-                await docRef2.set({ peer1: { uid: body.uid, signal: JSON.stringify(d) } }, { merge: true });
+                await docRef2.update({ peer1: { uid: body.uid, signal: JSON.stringify(d) } });
                 //maybe when peer1.signal is populated trigger a cloud function?
                 //res.send(JSON.stringify("document successfully written on signal!"));
             });
-            resolve("document successfully updated!");
+            resolve(peer);
         });
         prom.then((resolveData) => {
-            res.send(JSON.stringify('resolved: ' + resolveData));
+            db.doc(`games/${body.gid}`).set({ hostPeer: JSON.stringify(resolveData) }, { merge: true }).then(() => {
+                res.send(JSON.stringify('host peer created!'));
+            }).catch((error) => {
+                res.send(JSON.stringify('error: ' + error));
+            });
         }).catch((error) => {
             res.send(JSON.stringify('error: ' + error));
         });
     });
 });
 
-//data: { signalData: string }
+//data: { signalData: string, peerNum: string }
 exports.hostSignalGuest = functions.https.onRequest((req, res) => {
     cors(req, res, () => {
         const body = JSON.parse(req.body);
-        peer.signal(body.signalData);
+        console.log('guestPeers: ', guestPeers);
+        for(let i of guestPeers) {
+            console.log('i: ', i);
+            if(i[body.peerNum]) {
+                i[body.peerNum].signal(JSON.stringify(body.signalData));
+            }
+        }
         res.send(JSON.stringify("host signaled guest!"));
     });
 });
@@ -74,24 +84,41 @@ exports.hostSendData = functions.https.onRequest((req, res) => {
         const body = JSON.parse(req.body);
         for (const i of guestPeers) {
             console.log('[i]: ', i);
-            i.send(JSON.stringify(body.stuff));
+            if(i.peer2) {
+                i.peer2.send(JSON.stringify(body.stuff));
+            } else if(i.peer3) {
+                i.peer3.send(JSON.stringify(body.stuff));
+            } else if(i.peer4) {
+                i.peer4.send(JSON.stringify(body.stuff));
+            }
         }
         res.send(JSON.stringify("host sent data!"));
     });
 });
 
-//data: { stuff: object }
+//data: { stuff: object, gid: string } <<<<<<<<<<<<<<<< gid
 exports.guestSendData = functions.https.onRequest((req, res) => {
     cors(req, res, () => {
         const body = JSON.parse(req.body);
-        peer.send(JSON.stringify(body.stuff));
-        res.send(JSON.stringify("guest sent data!"));
+        const docRef2 = db.doc(`games/${body.gid}`);
+        docRef2.get().then((getData) => {
+            if (!getData.exists) {
+                console.log('No such document!');
+            } else {
+                console.log('Document data:', getData.data());
+                // let peer = ...JSON.parse(hostPeer);
+                // peer.send(JSON.stringify(body.stuff));
+                res.send(JSON.stringify("guest sent data!"));
+            }
+        }).catch((error) => {
+            res.send(JSON.stringify("guest data not sent!"));
+        })
     });
 });
 
 //data: { signalData: string, gid: string, peerNum: string, uid: string }
 exports.createGuestPeer = functions.https.onRequest((req, res) => {
-    cors(req, res, () => {
+    cors(req, res, async() => {
         const body = JSON.parse(req.body);
         const prom = new Promise((resolve, reject) => {
             const guestPeer = new SimplePeer({
@@ -106,37 +133,32 @@ exports.createGuestPeer = functions.https.onRequest((req, res) => {
             guestPeer.on('data', d => {
                 console.log('data: ' + d)
             })
-            guestPeer.on('signal', (d) => {
+            guestPeer.on('signal', async(d) => {
                 console.log('SIGNAL', JSON.stringify(d));
                 //this needs to be sent to firestore
-                const docRef = db.doc(`games/${body.gid}`);
-                if(body.peerNum === 'peer2') {
-                    docRef.set({ peer2: { uid: body.uid, signal: JSON.stringify(d) } }, { merge: true }).then((data) => {
-                        console.log('peer 2 signal added: ', data);
-                    }).catch((error) => {
-                        console.log('peer 2 not added: ', error);
-                    });
-                } else if(body.peerNum === 'peer3') {
-                    docRef.set({ peer3: { uid: body.uid, signal: JSON.stringify(d) } }, { merge: true }).then((data) => {
-                        console.log('peer 3 signal added: ', data);
-                    }).catch((error) => {
-                        console.log('peer 3 not added: ', error);
-                    });
-                } else if(body.peerNum === 'peer4') {
-                    docRef.set({ peer4: { uid: body.uid, signal: JSON.stringify(d) } }, { merge: true }).then((data) => {
-                        console.log('peer 4 signal added: ', data);
-                    }).catch((error) => {
-                        console.log('peer 4 not added: ', error);
-                    });
-                } 
-                peer.signal(JSON.stringify(d));
-                //res.send(JSON.stringify("guest signal: " + d));
+                const docRef2 = db.doc(`games/${body.gid}`);
+                await docRef2.update({ [body.peerNum]: { uid: body.uid, signal: JSON.stringify(d) } });
+                docRef2.get().then((getData) => {
+                    if (!getData.exists) {
+                        console.log('No such document!');
+                    } else {
+                        console.log('Document data:', getData.data());
+                        // let peer = ...JSON.parse(hostPeer);
+                        //peer.signal(JSON.stringify(d));
+                    }
+                })
+                .catch(err => {
+                    console.log('Error getting document', err);
+                });
             });
-            guestPeers.push(guestPeer);
-            resolve('host signaled guest!');
+            resolve(guestPeer);
         });
         prom.then((resolveData) => {
-            res.send(JSON.stringify('resolved: ' + resolveData));
+            db.doc(`games/${body.gid}`).set({ ['guest_'+body.peerNum]: JSON.stringify(resolveData) }, { merge: true }).then(() => {
+                res.send(JSON.stringify('guest peer created!'));
+            }).catch((error) => {
+                res.send(JSON.stringify('error: ' + error));
+            });
         }).catch((error) => {
             res.send(JSON.stringify('error: ' + error));
         })
